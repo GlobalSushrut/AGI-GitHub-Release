@@ -1,0 +1,458 @@
+{
+  "encrypted_at": 1745502657.9653344,
+  "encrypted_files": [
+    {
+      "original_path": "unreal_asi/security/encryption_framework.py",
+      "encrypted_path": "unreal_asi/security/encryption_framework.py.enc",
+      "size_bytes": 23477,
+      "encrypted_size_bytes": 1265315,
+      "timestamp": 1745502658.28412
+    },
+    {
+      "original_path": "unreal_asi/core/mock_tensor_sdnn.py",
+      "encrypted_path": "unreal_asi/core/mock_tensor_sdnn.py.enc",
+      "size_bytes": 12147,
+      "encrypted_size_bytes": 656900,
+      "timestamp": 1745502658.479636
+    },
+    {
+      "original_path": "unreal_asi/core/temporal_projection.py",
+      "encrypted_path": "unreal_asi/core/temporal_projection.py.enc",
+      "size_bytes": 25411,
+      "encrypted_size_bytes": 1370987,
+      "timestamp": 1745502658.9546962
+    },
+    {
+      "original_path": "unreal_asi/core/strange_loop.py",
+      "encrypted_path": "unreal_asi/core/strange_loop.py.enc",
+      "size_bytes": 11557,
+      "encrypted_size_bytes": 624407,
+      "timestamp": 1745502659.1754954
+    },
+    {
+      "original_path": "unreal_asi/core/unreal_numbers.py",
+      "encrypted_path": "unreal_asi/core/unreal_numbers.py.enc",
+      "size_bytes": 15660,
+      "encrypted_size_bytes": 845600,
+      "timestamp": 1745502659.3887658
+    },
+    {
+      "original_path": "unreal_asi/core/mock_vectors.py",
+      "encrypted_path": "unreal_asi/core/mock_vectors.py.enc",
+      "size_bytes": 30260,
+      "encrypted_size_bytes": 1634377,
+      "timestamp": 1745502659.9480894
+    },
+    {
+      "original_path": "unreal_asi/core/coimbinotric_sequences.py",
+      "encrypted_path": "unreal_asi/core/coimbinotric_sequences.py.enc",
+      "size_bytes": 18897,
+      "encrypted_size_bytes": 1020998,
+      "timestamp": 1745502660.2582643
+    },
+    {
+      "original_path": "unreal_asi/core/factorial_dynamics.py",
+      "encrypted_path": "unreal_asi/core/factorial_dynamics.py.enc",
+      "size_bytes": 19759,
+      "encrypted_size_bytes": 1067333,
+      "timestamp": 1745502660.5124755
+    },
+    {
+      "original_path": "unreal_asi/core/auif_integration.py",
+      "encrypted_path": "unreal_asi/core/auif_integration.py.enc",
+      "size_bytes": 24290,
+      "encrypted_size_bytes": 1310507,
+      "timestamp": 1745502660.8091745
+    },
+    {
+      "original_path": "unreal_asi/core/symbolic_agi_integration.py",
+      "encrypted_path": "unreal_asi/core/symbolic_agi_integration.py.enc",
+      "size_bytes": 14906,
+      "encrypted_size_bytes": 803678,
+      "timestamp": 1745502661.0134835
+    },
+    {
+      "original_path": "unreal_asi/core/unified_math.py",
+      "encrypted_path": "unreal_asi/core/unified_math.py.enc",
+      "size_bytes": 19073,
+      "encrypted_size_bytes": 1024212,
+      "timestamp": 1745502661.1974382
+    },
+    {
+      "original_path": "unreal_asi/core/temporal_awareness.py",
+      "encrypted_path": "unreal_asi/core/temporal_awareness.py.enc",
+      "size_bytes": 16597,
+      "encrypted_size_bytes": 897245,
+      "timestamp": 1745502661.3873663
+    },
+    {
+      "original_path": "unreal_asi/core/asi_engine.py",
+      "encrypted_path": "unreal_asi/core/asi_engine.py.enc",
+      "size_bytes": 30569,
+      "encrypted_size_bytes": 1645740,
+      "timestamp": 1745502661.7657275
+    },
+    {
+      "original_path": "unreal_asi/core/identity_engine.py",
+      "encrypted_path": "unreal_asi/core/identity_engine.py.enc",
+      "size_bytes": 16004,
+      "encrypted_size_bytes": 862903,
+      "timestamp": 1745502661.9699497
+    },
+    {
+      "original_path": "unreal_asi/core/initialize.py",
+      "encrypted_path": "unreal_asi/core/initialize.py.enc",
+      "size_bytes": 9113,
+      "encrypted_size_bytes": 491309,
+      "timestamp": 1745502662.0961146
+    },
+    {
+      "original_path": "unreal_asi/core/topological_matrix.py",
+      "encrypted_path": "unreal_asi/core/topological_matrix.py.enc",
+      "size_bytes": 32570,
+      "encrypted_size_bytes": 1759190,
+      "timestamp": 1745502662.5216694
+    },
+    {
+      "original_path": "unreal_asi/core/emergent_consciousness.py",
+      "encrypted_path": "unreal_asi/core/emergent_consciousness.py.enc",
+      "size_bytes": 24203,
+      "encrypted_size_bytes": 1305693,
+      "timestamp": 1745502662.7972956
+    },
+    {
+      "original_path": "unreal_asi/core/mind/mind_engine.py",
+      "encrypted_path": "unreal_asi/core/mind/mind_engine.py.enc",
+      "size_bytes": 21853,
+      "encrypted_size_bytes": 1176140,
+      "timestamp": 1745502663.0355115
+    },
+    {
+      "original_path": "unreal_asi/core/mind/emotional_state.py",
+      "encrypted_path": "unreal_asi/core/mind/emotional_state.py.enc",
+      "size_bytes": 9973,
+      "encrypted_size_bytes": 537665,
+      "timestamp": 1745502663.1942093
+    },
+    {
+      "original_path": "unreal_asi/core/mind/refractive_entropy.py",
+      "encrypted_path": "unreal_asi/core/mind/refractive_entropy.py.enc",
+      "size_bytes": 14900,
+      "encrypted_size_bytes": 804502,
+      "timestamp": 1745502663.373906
+    },
+    {
+      "original_path": "unreal_asi/core/mind/coimbinotric_memory.py",
+      "encrypted_path": "unreal_asi/core/mind/coimbinotric_memory.py.enc",
+      "size_bytes": 20802,
+      "encrypted_size_bytes": 1121887,
+      "timestamp": 1745502663.5325816
+    },
+    {
+      "original_path": "unreal_asi/core/mind/mock_identity.py",
+      "encrypted_path": "unreal_asi/core/mind/mock_identity.py.enc",
+      "size_bytes": 8884,
+      "encrypted_size_bytes": 478847,
+      "timestamp": 1745502663.621041
+    },
+    {
+      "original_path": "unreal_asi/core/mind/emotional_transitions.py",
+      "encrypted_path": "unreal_asi/core/mind/emotional_transitions.py.enc",
+      "size_bytes": 11481,
+      "encrypted_size_bytes": 618812,
+      "timestamp": 1745502663.7380354
+    },
+    {
+      "original_path": "unreal_asi/core/mind/__init__.py",
+      "encrypted_path": "unreal_asi/core/mind/__init__.py.enc",
+      "size_bytes": 520,
+      "encrypted_size_bytes": 27858,
+      "timestamp": 1745502663.7535434
+    }
+  ],
+  "unencrypted_files": [
+    {
+      "path": "unreal_asi/run_training_interface.py",
+      "size_bytes": 4539,
+      "timestamp": 1745502663.7537088
+    },
+    {
+      "path": "unreal_asi/run.py",
+      "size_bytes": 7514,
+      "timestamp": 1745502663.7537467
+    },
+    {
+      "path": "unreal_asi/poc_physics_modeling.py",
+      "size_bytes": 25622,
+      "timestamp": 1745502663.753782
+    },
+    {
+      "path": "unreal_asi/demo_unified_framework.py",
+      "size_bytes": 14397,
+      "timestamp": 1745502663.7538147
+    },
+    {
+      "path": "unreal_asi/unreal_chatbot.py",
+      "size_bytes": 59660,
+      "timestamp": 1745502663.7538483
+    },
+    {
+      "path": "unreal_asi/run_visualization.py",
+      "size_bytes": 11205,
+      "timestamp": 1745502663.7538838
+    },
+    {
+      "path": "unreal_asi/run_symbolic_demos.py",
+      "size_bytes": 15735,
+      "timestamp": 1745502663.753918
+    },
+    {
+      "path": "unreal_asi/train_unreal_mind.py",
+      "size_bytes": 12239,
+      "timestamp": 1745502663.753951
+    },
+    {
+      "path": "unreal_asi/unified_mind.py",
+      "size_bytes": 19872,
+      "timestamp": 1745502663.7539842
+    },
+    {
+      "path": "unreal_asi/test_all.py",
+      "size_bytes": 4377,
+      "timestamp": 1745502663.754018
+    },
+    {
+      "path": "unreal_asi/mind_demo.py",
+      "size_bytes": 23358,
+      "timestamp": 1745502663.754053
+    },
+    {
+      "path": "unreal_asi/__init__.py",
+      "size_bytes": 246,
+      "timestamp": 1745502663.754088
+    },
+    {
+      "path": "unreal_asi/training/trainer.py",
+      "size_bytes": 15230,
+      "timestamp": 1745502663.7541246
+    },
+    {
+      "path": "unreal_asi/visualization/mock_space_plotter.py",
+      "size_bytes": 28147,
+      "timestamp": 1745502663.7541633
+    },
+    {
+      "path": "unreal_asi/visualization/consciousness_monitor.py",
+      "size_bytes": 25838,
+      "timestamp": 1745502663.7541983
+    },
+    {
+      "path": "unreal_asi/visualization/unreal_visualizer.py",
+      "size_bytes": 21123,
+      "timestamp": 1745502663.754234
+    },
+    {
+      "path": "unreal_asi/visualization/__init__.py",
+      "size_bytes": 330,
+      "timestamp": 1745502663.7542834
+    },
+    {
+      "path": "unreal_asi/interfaces/data_interface.py",
+      "size_bytes": 15013,
+      "timestamp": 1745502663.7543204
+    },
+    {
+      "path": "unreal_asi/interfaces/processors.py",
+      "size_bytes": 17241,
+      "timestamp": 1745502663.754358
+    },
+    {
+      "path": "unreal_asi/interfaces/training_interface.py",
+      "size_bytes": 31162,
+      "timestamp": 1745502663.7543948
+    },
+    {
+      "path": "unreal_asi/interfaces/__init__.py",
+      "size_bytes": 207,
+      "timestamp": 1745502663.754431
+    },
+    {
+      "path": "unreal_asi/demos/investor_demo_recursive_insight.py",
+      "size_bytes": 13237,
+      "timestamp": 1745502663.7544694
+    },
+    {
+      "path": "unreal_asi/demos/investor_demo_multimodal.py",
+      "size_bytes": 13658,
+      "timestamp": 1745502663.7545056
+    },
+    {
+      "path": "unreal_asi/demos/investor_demo_reflection_loop.py",
+      "size_bytes": 16800,
+      "timestamp": 1745502663.7545419
+    },
+    {
+      "path": "unreal_asi/demos/investor_demo_temporal_decision.py",
+      "size_bytes": 17588,
+      "timestamp": 1745502663.7545798
+    },
+    {
+      "path": "unreal_asi/demos/poc_symbolic_perception.py",
+      "size_bytes": 20090,
+      "timestamp": 1745502663.7546184
+    },
+    {
+      "path": "unreal_asi/demos/poc_recursive_consciousness.py",
+      "size_bytes": 12181,
+      "timestamp": 1745502663.754658
+    },
+    {
+      "path": "unreal_asi/demos/poc_temporal_emotion.py",
+      "size_bytes": 24792,
+      "timestamp": 1745502663.7546976
+    },
+    {
+      "path": "unreal_asi/demos/investor_demo_identity_activation.py",
+      "size_bytes": 14418,
+      "timestamp": 1745502663.7547367
+    },
+    {
+      "path": "unreal_asi/demos/investor_demo_emotion_entropy.py",
+      "size_bytes": 18819,
+      "timestamp": 1745502663.7547765
+    },
+    {
+      "path": "unreal_asi/demos/investor_demo_memory_fork.py",
+      "size_bytes": 20517,
+      "timestamp": 1745502663.7548144
+    },
+    {
+      "path": "unreal_asi/applications/advanced_demo.py",
+      "size_bytes": 24248,
+      "timestamp": 1745502663.754854
+    },
+    {
+      "path": "unreal_asi/applications/artemis/demo.py",
+      "size_bytes": 953,
+      "timestamp": 1745502663.7548947
+    },
+    {
+      "path": "unreal_asi/applications/artemis/core.py",
+      "size_bytes": 22690,
+      "timestamp": 1745502663.754934
+    },
+    {
+      "path": "unreal_asi/applications/artemis/__init__.py",
+      "size_bytes": 1,
+      "timestamp": 1745502663.7549732
+    },
+    {
+      "path": "unreal_asi/applications/ambient_intelligence/run_demo.py",
+      "size_bytes": 5966,
+      "timestamp": 1745502663.7550147
+    },
+    {
+      "path": "unreal_asi/applications/ambient_intelligence/web_interface.py",
+      "size_bytes": 6187,
+      "timestamp": 1745502663.7550554
+    },
+    {
+      "path": "unreal_asi/applications/ambient_intelligence/system.py",
+      "size_bytes": 26068,
+      "timestamp": 1745502663.7550955
+    },
+    {
+      "path": "unreal_asi/applications/creative_intelligence/narrative_intelligence.py",
+      "size_bytes": 26299,
+      "timestamp": 1745502663.755136
+    },
+    {
+      "path": "unreal_asi/applications/creative_intelligence/__init__.py",
+      "size_bytes": 1,
+      "timestamp": 1745502663.7551746
+    },
+    {
+      "path": "unreal_asi/applications/nexus/nexus_demo.py",
+      "size_bytes": 17686,
+      "timestamp": 1745502663.7552137
+    },
+    {
+      "path": "unreal_asi/applications/nexus/__init__.py",
+      "size_bytes": 1,
+      "timestamp": 1745502663.7552538
+    },
+    {
+      "path": "unreal_asi/applications/insight_engine/knowledge_synthesis.py",
+      "size_bytes": 28033,
+      "timestamp": 1745502663.7553158
+    },
+    {
+      "path": "unreal_asi/applications/insight_engine/__init__.py",
+      "size_bytes": 1,
+      "timestamp": 1745502663.7553556
+    },
+    {
+      "path": "unreal_asi/applications/neuromorphic/recursive_control.py",
+      "size_bytes": 24452,
+      "timestamp": 1745502663.7553954
+    },
+    {
+      "path": "unreal_asi/applications/neuromorphic/__init__.py",
+      "size_bytes": 1,
+      "timestamp": 1745502663.7554326
+    },
+    {
+      "path": "unreal_asi/applications/enterprise/demo.py",
+      "size_bytes": 10193,
+      "timestamp": 1745502663.7554708
+    },
+    {
+      "path": "unreal_asi/applications/enterprise/core.py",
+      "size_bytes": 27718,
+      "timestamp": 1745502663.75551
+    },
+    {
+      "path": "unreal_asi/applications/enterprise/__init__.py",
+      "size_bytes": 1,
+      "timestamp": 1745502663.7555487
+    },
+    {
+      "path": "unreal_asi/core/__init__.py",
+      "size_bytes": 360,
+      "timestamp": 1745502663.7555866
+    },
+    {
+      "path": "unreal_asi/benchmarks/run_all.py",
+      "size_bytes": 18987,
+      "timestamp": 1745502663.755625
+    },
+    {
+      "path": "unreal_asi/benchmarks/comparative_analysis.py",
+      "size_bytes": 23564,
+      "timestamp": 1745502663.755662
+    },
+    {
+      "path": "unreal_asi/security/audit.py",
+      "size_bytes": 22645,
+      "timestamp": 1745502663.7556982
+    },
+    {
+      "path": "unreal_asi/security/encryption_demo.py",
+      "size_bytes": 13740,
+      "timestamp": 1745502663.7557342
+    },
+    {
+      "path": "unreal_asi/security/encryption_utils.py",
+      "size_bytes": 12736,
+      "timestamp": 1745502663.7557726
+    },
+    {
+      "path": "unreal_asi/security/encryption_loader.py",
+      "size_bytes": 6705,
+      "timestamp": 1745502663.755809
+    }
+  ],
+  "key_salt_hash": "d6df7d05905e801a",
+  "encryption_version": "1.0",
+  "encryption_type": "selective_core"
+}
