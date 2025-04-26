@@ -1,85 +1,128 @@
-# Encrypted ASI (Artificial Superintelligence) Engine
+# AGI Toolkit: Unified ASI and MOCK-LLM Integration
 
-This repository contains the Unreal ASI Engine, a powerful toolkit for developing advanced AI applications. The core algorithms and mathematical implementations are encrypted to protect intellectual property while allowing developers to freely build real-world applications using the public API.
+## Important: Environment Variable Setup
+
+To use this package, you must set the following environment variable:
+
+```bash
+export AGI_TOOLKIT_KEY='AGI-Toolkit-Secure-2025'
+```
+
+This environment variable is required for decrypting and loading the core components. Without it, the toolkit will not function properly.
+
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Python](https://img.shields.io/badge/python-3.8%2B-blue)
+![License](https://img.shields.io/badge/license-MR--ZKELP-purple)
+
+A powerful toolkit for integrating ASI (Artificial Super Intelligence) and MOCK-LLM systems into real-world applications without modifying the core implementation code.
+
+## Licensing
+
+This software is released under the **Mock Root ZK Entropy Licensing Protocol (MR-ZKELP)**:
+
+- **Free for Development/Open Source**: Build, test, and develop freely
+- **Requires License for Corporate/Production**: Enterprise deployments require a license
+
+The software automatically detects usage patterns and enforces the licensing model. For commercial licenses, contact umeshlamton@gmail.com.
 
 ## Features
 
-- **Encrypted Core**: All core algorithms and mathematical implementations are securely encrypted
-- **Public API**: Clean, easy-to-use API for accessing ASI capabilities
-- **Free Access**: Anyone can use the ASI engine to build applications
-- **Example Applications**: Sample applications demonstrating ASI capabilities
+- **Clean, Stable API:** Build applications on top of ASI and MOCK-LLM without touching core code
+- **Component Flexibility:** Works with ASI, MOCK-LLM, or both components together
+- **Non-Euclidean Memory:** Advanced memory system with high-dimensional storage capabilities
+- **Entropic Quantum Compression:** Dramatic memory reduction for i3 compatibility
+- **Unified Training:** Train models across ASI and MOCK-LLM systems seamlessly
+- **Easy Integration:** Simple high-level functions for common tasks
 
-## Getting Started
+## Installation
 
-### Installation
+```bash
+# Install from PyPI
+pip install agi-toolkit
 
-1. Clone this repository:
-   ```
-   git clone https://github.com/yourusername/unreal-asi-engine.git
-   cd unreal-asi-engine
-   ```
+# Install from source
+git clone https://github.com/GlobalSushrut/AGI-GitHub-Release.git
+cd AGI-GitHub-Release/deployable
+pip install -e .
+```
 
-2. Install dependencies:
-   ```
-   pip install -r requirements.txt
-   ```
-
-3. Initialize the ASI engine:
-   ```
-   python setup.py
-   ```
-
-### Using the ASI Engine
-
-The ASI engine is accessed through the public API, which provides a simple interface for using ASI capabilities:
+## Quick Start
 
 ```python
-from unreal_asi.asi_public_api import initialize_asi, create_asi_instance
+from agi_toolkit import AGIAPI
 
-# Initialize ASI engine
-initialize_asi()
+# Initialize the API
+api = AGIAPI()
 
-# Create an ASI instance
-asi = create_asi_instance(name="MyASI")
+# Check component availability
+print(f"ASI available: {api.has_asi}")
+print(f"MOCK-LLM available: {api.has_mock_llm}")
 
-# Use ASI capabilities
-patterns = asi.discover_patterns(domain="healthcare", properties={
-    "blood_pressure": 0.75,
-    "heart_rate": 0.65,
-    "respiratory_rate": 0.5,
-    "temperature": 0.6
-})
+# Generate text with MOCK-LLM
+response = api.generate_text("Explain quantum computing in simple terms")
+print(response)
 
-insights = asi.generate_insight(concepts=["health", "wellness", "treatment"])
+# Process data with ASI
+result = api.process_with_asi({"query": "Analyze market trends for AI in 2025"})
+print(result)
 
-timeline = asi.predict_timeline({
-    "name": "Treatment Plan",
-    "complexity": 0.7,
-    "uncertainty": 0.5,
-    "domain": "healthcare"
-})
+# Store and retrieve data from unified memory
+api.store_data("user_preferences", {"theme": "dark", "language": "en"})
+prefs, metadata = api.retrieve_data("user_preferences")
+print(prefs)
 ```
 
 ## Examples
 
-See the `/unreal_asi/applications/examples` directory for sample applications demonstrating how to use the ASI engine:
+The `examples` directory contains fully functional applications built with the AGI Toolkit:
 
-- Healthcare Analyzer
-- Financial Market Analyzer
-- Creative Content Generator
-- Strategic Decision Assistant
-- Pattern Discovery Tool
+- **Text Analysis App:** Analyze text using ASI and MOCK-LLM capabilities
+- **Simple Chatbot:** Build conversational AI with memory persistence
+- **Data Processor:** Process and analyze structured data with ASI
 
-## Encryption
+## System Architecture
 
-The core ASI algorithms and mathematical implementations are encrypted to protect intellectual property. The encryption is handled transparently through the public API, so developers don't need to worry about it.
+The AGI Toolkit provides a simplified API layer on top of the complex ASI and MOCK-LLM systems:
 
-A default public license key is included that allows anyone to use the ASI engine for free. Commercial applications should obtain a commercial license.
+```
+┌────────────────────────────────────────────────────────┐
+│                     Your Application                    │
+└───────────────────────────┬────────────────────────────┘
+                           │
+┌───────────────────────────┴────────────────────────────┐
+│                        AGI Toolkit                      │
+├────────────────────────┬──────────────────────────────┬┘
+│                        │                               │
+┌────────────────────────┴─────┐   ┌──────────────────────┴───┐
+│      ASI Integration          │   │   MOCK-LLM Integration   │
+└──────────────┬───────────────┘   └─────────────┬────────────┘
+              │                                 │
+┌─────────────┴─────────────────────────────────┴────────────┐
+│              Unified Memory and Training System             │
+└────────────────────────────────────────────────────────────┘
+```
+
+## Component Status
+
+The toolkit is designed to work with available components:
+
+- **ASI Components:** Advanced reasoning, data processing, and AI capabilities
+- **MOCK-LLM Components:** Text generation, embeddings, and language understanding
+- **Unified Memory:** Non-Euclidean memory system for both components
+- **Training System:** Unified training across both systems
+
+## Documentation
+
+For detailed documentation, see the `docs` directory or visit our [documentation site](https://github.com/GlobalSushrut/AGI-GitHub-Release/docs).
 
 ## License
 
-This software is provided under a dual-license model:
-- Free for non-commercial and research use
-- Commercial licenses available for business applications
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-Contact us for commercial licensing options.
+## Contact
+
+For questions or support, please open an issue on GitHub or contact the maintainers.
+
+---
+
+*Note: ASI and MOCK-LLM components availability may vary depending on your system configuration.*

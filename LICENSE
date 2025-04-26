@@ -1,0 +1,85 @@
+MOCK ROOT ZK ENTROPY LICENSING PROTOCOL (MR-ZKELP) v1.0
+
+Copyright (c) 2025 GlobalSushrut
+
+===================================================================
+                     DUAL LICENSING TERMS
+===================================================================
+
+This software is released under a dual licensing model:
+
+1. OPEN SOURCE/DEVELOPMENT LICENSE (FREE)
+   For individual developers, researchers, educational purposes,
+   and non-commercial use with limited deployment scale.
+
+2. COMMERCIAL/PRODUCTION LICENSE (PAID)
+   Required for corporate, enterprise, or production use.
+
+===================================================================
+                  OPEN SOURCE/DEVELOPMENT LICENSE
+===================================================================
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software for development, research, or personal use,
+subject to the following conditions:
+
+1. Usage must remain below the entropy threshold as defined by the
+   MR-ZKELP system (as measured by user count, transaction volume,
+   deployment size, and other metrics).
+
+2. This license does not permit corporate deployment, enterprise use,
+   or production systems without a valid Commercial License.
+
+3. The above copyright notice and this license notice shall be
+   included in all copies or substantial portions of the Software.
+
+===================================================================
+                  COMMERCIAL/PRODUCTION LICENSE
+===================================================================
+
+For corporate, enterprise, or production use, a separate commercial
+license is required. This includes:
+
+1. Any usage above the entropy threshold defined by MR-ZKELP
+2. Use in corporate environments
+3. Production deployments
+4. Enterprise applications
+5. Commercial distribution of derived works
+
+To obtain a commercial license, please contact:
+licensing@globalsushrut.com
+
+===================================================================
+                       LEGAL DISCLAIMER
+===================================================================
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+===================================================================
+                     LICENSE ENFORCEMENT
+===================================================================
+
+This software implements the Mock Root ZK Entropy Licensing Protocol
+(MR-ZKELP) which automatically detects usage patterns and environment
+to enforce this dual license model.
+
+1. The software contains mechanisms to detect usage patterns,
+   deployment environments, and computational scale.
+
+2. For usage above specified thresholds, the software will require
+   a valid license key that can only be provided by GlobalSushrut.
+
+3. Attempting to bypass the licensing mechanism is prohibited
+   and may result in legal action.
+
+4. License keys are non-transferrable and bound to specific
+   organizations/deployments.
+
+Questions about licensing compliance can be directed to:
+umeshlamton@gmail.com
