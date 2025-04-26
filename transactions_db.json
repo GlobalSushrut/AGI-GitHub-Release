@@ -1,0 +1,52 @@
+{
+  "banking_transactions": [
+    {
+      "account_id": "test1",
+      "tx_id": "tx001",
+      "amount": 10.0,
+      "description": "Free tier test",
+      "timestamp": "2025-04-26T13:09:52.508005",
+      "id": "tx-20250426130952-0"
+    },
+    {
+      "account_id": "test1",
+      "tx_id": "tx001",
+      "amount": 10.0,
+      "description": "Free tier test",
+      "timestamp": "2025-04-26T13:10:01.367876",
+      "id": "tx-20250426131001-1"
+    },
+    {
+      "account_id": "test2",
+      "tx_id": "tx002",
+      "amount": 50.0,
+      "description": "Test free tier usage",
+      "timestamp": "2025-04-26T13:19:21.872863",
+      "id": "tx-20250426131921-2"
+    },
+    {
+      "account_id": "corp1",
+      "tx_id": "tx003",
+      "amount": 5000.0,
+      "description": "Corporate usage test",
+      "timestamp": "2025-04-26T13:19:28.313006",
+      "id": "tx-20250426131928-3"
+    },
+    {
+      "account_id": "test_run",
+      "tx_id": "tx100",
+      "amount": 500.0,
+      "description": "Test run for logs",
+      "timestamp": "2025-04-26T13:23:19.573547",
+      "id": "tx-20250426132319-4"
+    },
+    {
+      "account_id": "demo1",
+      "tx_id": "tx001",
+      "amount": 100.0,
+      "description": "Demo transaction",
+      "timestamp": "2025-04-26T13:35:21.111806",
+      "id": "tx-20250426133521-5"
+    }
+  ]
+}

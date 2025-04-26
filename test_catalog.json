@@ -1,0 +1,60 @@
+{
+  "products": [
+    {
+      "id": "p1001",
+      "name": "Smartphone X",
+      "category": "electronics",
+      "price": 799.99,
+      "tags": ["smartphone", "camera", "5G", "flagship"],
+      "description": "The latest flagship smartphone with cutting edge camera technology and 5G connectivity."
+    },
+    {
+      "id": "p1002",
+      "name": "Wireless Earbuds",
+      "category": "electronics",
+      "price": 129.99,
+      "tags": ["audio", "wireless", "bluetooth", "portable"],
+      "description": "Premium wireless earbuds with noise cancellation and long battery life."
+    },
+    {
+      "id": "p1003",
+      "name": "Smart Watch Pro",
+      "category": "electronics",
+      "price": 349.99,
+      "tags": ["wearable", "fitness", "health", "smartwatch"],
+      "description": "Track your fitness, health, and stay connected with this premium smartwatch."
+    },
+    {
+      "id": "p1004",
+      "name": "4K Ultra HD TV",
+      "category": "electronics",
+      "price": 1299.99,
+      "tags": ["television", "4K", "smart tv", "home entertainment"],
+      "description": "Experience stunning visuals with this 65-inch 4K Ultra HD Smart TV."
+    },
+    {
+      "id": "p1005",
+      "name": "Laptop Pro",
+      "category": "electronics",
+      "price": 1499.99,
+      "tags": ["computer", "laptop", "productivity", "professional"],
+      "description": "Powerful laptop for professionals with high-performance specs and long battery life."
+    }
+  ],
+  "users": [
+    {
+      "id": "u1001",
+      "name": "John Smith",
+      "purchases": ["p1001", "p1002"],
+      "viewed": ["p1001", "p1002", "p1003", "p1005"],
+      "preferences": ["electronics", "tech gadgets"]
+    },
+    {
+      "id": "u1002",
+      "name": "Emily Johnson",
+      "purchases": ["p1003", "p1005"],
+      "viewed": ["p1002", "p1003", "p1004", "p1005"],
+      "preferences": ["productivity", "fitness"]
+    }
+  ]
+}
