@@ -23,7 +23,8 @@ from typing import Dict, List, Any, Optional
 # Add the parent directory to path so we can import the AGI Toolkit
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-# Import the AGI Toolkit
+# Import the ASI helper module and AGI Toolkit
+from real_world_apps.asi_helper import initialize_asi_components, process_with_asi
 from agi_toolkit import AGIAPI
 
 class RecommendationEngine:
@@ -45,6 +46,12 @@ class RecommendationEngine:
         self.logger.setLevel(logging.INFO)
         
         self.logger.info("Initializing Recommendation Engine")
+        
+        # Initialize real ASI components
+        initialize_asi_components()
+        
+        # Set environment variable to ensure interface uses real components
+        os.environ['USE_REAL_ASI'] = 'true'
         
         # Initialize the AGI Toolkit API
         self.api = AGIAPI()
@@ -279,54 +286,65 @@ class RecommendationEngine:
                 return product
         return None
     
-    def get_recommendations(self, user_id: str, 
-                           num_recommendations: int = 5, 
-                           strategy: str = "hybrid") -> List[Dict[str, Any]]:
+    def recommend_products(self, user_id: str, context: Dict = None, limit: int = 5) -> List[Dict]:
         """
-        Get personalized product recommendations for a user.
+        Generate product recommendations for a user.
         
         Args:
-            user_id: Unique user identifier
-            num_recommendations: Number of recommendations to return
-            strategy: Recommendation strategy (content, collaborative, hybrid)
+            user_id: User ID to generate recommendations for
+            context: Additional context like current page, cart items, etc.
+            limit: Maximum number of recommendations to return
             
         Returns:
-            List of recommended products with explanations
+            List of recommended products with explanation
         """
-        self.logger.info(f"Generating {num_recommendations} recommendations for user {user_id} using {strategy} strategy")
+        self.logger.info(f"Generating recommendations for user {user_id}")
         
-        # Get user preferences
+        # Get user preferences if available
         user_prefs = self.user_preferences.get(user_id, {})
         
-        recommendations = []
+        # Generate recommendations using real ASI if available
+        if self.api.has_asi:
+            try:
+                # Prepare data for recommendation
+                recommendation_data = {
+                    "task": "recommend_products",
+                    "user_id": user_id,
+                    "user_preferences": user_prefs,
+                    "product_catalog": self.products[:100],  # Limit catalog size
+                    "context": context,
+                    "limit": limit
+                }
+                
+                # Process with real ASI
+                result = process_with_asi(self.api, recommendation_data)
+                
+                # Handle the result
+                if isinstance(result, dict) and result.get("success", False) and "result" in result:
+                    recommendations_data = result["result"]
+                    
+                    # Handle different output formats
+                    if isinstance(recommendations_data, list):
+                        # If already a list of recommendations
+                        return recommendations_data[:limit]
+                    elif isinstance(recommendations_data, dict):
+                        # If recommendations are in a specific field
+                        if "recommendations" in recommendations_data:
+                            return recommendations_data["recommendations"][:limit]
+                        elif "products" in recommendations_data:
+                            return recommendations_data["products"][:limit]
+                    
+                    # Log success
+                    self.logger.info(f"Generated {len(recommendations_data)} recommendations using ASI")
+            except Exception as e:
+                self.logger.error(f"Error generating recommendations with ASI: {str(e)}")
         
-        if strategy == "content" or strategy == "hybrid":
-            content_recs = self._get_content_based_recommendations(user_id, num_recommendations)
-            recommendations.extend(content_recs)
-        
-        if strategy == "collaborative" or strategy == "hybrid":
-            collab_recs = self._get_collaborative_recommendations(user_id, num_recommendations)
-            recommendations.extend(collab_recs)
-        
-        # Remove duplicates while preserving order
-        seen_ids = set()
-        unique_recommendations = []
-        for rec in recommendations:
-            if rec["product"]["id"] not in seen_ids:
-                seen_ids.add(rec["product"]["id"])
-                unique_recommendations.append(rec)
-        
-        # For hybrid strategy, use ASI to re-rank if available
-        final_recommendations = unique_recommendations
-        if strategy == "hybrid" and self.api.has_asi:
-            final_recommendations = self._rerank_recommendations(user_id, unique_recommendations, num_recommendations)
-        
-        # Limit to requested number
-        return final_recommendations[:num_recommendations]
+        # Fallback to rule-based recommendations
+        return self._rule_based_recommendations(user_id, context, limit)
     
-    def _get_content_based_recommendations(self, user_id: str, count: int) -> List[Dict[str, Any]]:
-        """Get content-based recommendations."""
-        self.logger.info(f"Generating content-based recommendations for user {user_id}")
+    def _rule_based_recommendations(self, user_id: str, context: Dict = None, limit: int = 5) -> List[Dict]:
+        """Generate rule-based recommendations."""
+        self.logger.info(f"Generating rule-based recommendations for user {user_id}")
         
         user_prefs = self.user_preferences.get(user_id, {})
         
@@ -337,10 +355,10 @@ class RecommendationEngine:
                 {
                     "product": product,
                     "score": product.get("rating", 0) / 5.0,
-                    "strategy": "content",
+                    "strategy": "rule-based",
                     "explanation": "Top-rated product"
                 }
-                for product in top_products[:count]
+                for product in top_products[:limit]
             ]
         
         # Get category preferences
@@ -370,129 +388,90 @@ class RecommendationEngine:
             scored_products.append({
                 "product": product,
                 "score": min(score, 1.0),  # Cap at 1.0
-                "strategy": "content",
+                "strategy": "rule-based",
                 "explanation": explanation
             })
         
         # Sort by score and return top results
         scored_products.sort(key=lambda p: p["score"], reverse=True)
-        return scored_products[:count]
+        return scored_products[:limit]
     
-    def _get_collaborative_recommendations(self, user_id: str, count: int) -> List[Dict[str, Any]]:
+    def analyze_product_affinity(self, product_id: str, limit: int = 3) -> List[Dict]:
         """
-        Simulate collaborative filtering recommendations.
+        Find products with high affinity to the given product.
         
-        Note: In a real-world scenario, this would use actual user similarity data.
-        This implementation uses a simplified approach for demonstration.
-        """
-        self.logger.info(f"Generating collaborative recommendations for user {user_id}")
-        
-        user_prefs = self.user_preferences.get(user_id, {})
-        
-        # If no preferences or no MOCK-LLM, return empty list
-        if not user_prefs or not self.api.has_mock_llm:
-            return []
-        
-        # Get products the user has interacted with
-        viewed = user_prefs.get("viewed_products", [])
-        purchased = user_prefs.get("purchased_products", [])
-        rated = user_prefs.get("rated_products", {})
-        
-        all_interactions = list(set(viewed + purchased + list(rated.keys())))
-        
-        if not all_interactions:
-            return []
-        
-        # Use MOCK-LLM for "people who bought X also bought Y" recommendations
-        if self.api.has_mock_llm:
-            recommendations = []
-            for product_id in all_interactions[:3]:  # Limit to 3 products for efficiency
-                product = self.get_product_by_id(product_id)
-                if not product:
-                    continue
-                
-                # Create a prompt for collaborative recommendations
-                prompt = f"""Based on the product {product["name"]} (category: {product["category"]}), 
-                suggest similar products that people who liked this product might also like.
-                Consider matching the following features: {", ".join(product.get("features", []))}
-                """
-                
-                response = self.api.generate_text(prompt)
-                
-                # Process the response (in real-world, this would come from actual data)
-                # For now, find products with similar categories
-                similar_products = [
-                    p for p in self.products 
-                    if p["category"] == product["category"] and p["id"] != product_id
-                ]
-                
-                for similar in similar_products[:2]:  # Limit to 2 per original product
-                    explanation = f"Customers who purchased {product['name']} also bought this"
-                    recommendations.append({
-                        "product": similar,
-                        "score": 0.7,  # Fixed score for demo
-                        "strategy": "collaborative",
-                        "explanation": explanation
-                    })
+        Args:
+            product_id: Product ID to find related products for
+            limit: Maximum number of related products to return
             
-            return recommendations
+        Returns:
+            List of related products with affinity score
+        """
+        self.logger.info(f"Finding related products for {product_id}")
         
-        # Fallback if MOCK-LLM is not available
-        return []
-    
-    def _rerank_recommendations(self, user_id: str, recommendations: List[Dict[str, Any]], count: int) -> List[Dict[str, Any]]:
-        """Re-rank recommendations using ASI."""
-        if not self.api.has_asi:
-            return recommendations
+        # Find the source product
+        source_product = None
+        for product in self.products:
+            if product.get("id") == product_id:
+                source_product = product
+                break
         
-        self.logger.info(f"Re-ranking recommendations for user {user_id} using ASI")
+        if not source_product:
+            self.logger.error(f"Product {product_id} not found in catalog")
+            return []
         
-        # Prepare data for ASI
-        user_prefs = self.user_preferences.get(user_id, {})
-        
-        reranking_data = {
-            "user_preferences": user_prefs,
-            "recommendations": [
-                {
-                    "product_id": rec["product"]["id"],
-                    "name": rec["product"]["name"],
-                    "category": rec["product"]["category"],
-                    "price": rec["product"]["price"],
-                    "rating": rec["product"]["rating"],
-                    "score": rec["score"],
-                    "strategy": rec["strategy"]
+        # Use real ASI for advanced affinity analysis if available
+        if self.api.has_asi:
+            try:
+                # Prepare data for affinity analysis
+                affinity_data = {
+                    "task": "product_affinity",
+                    "source_product": source_product,
+                    "product_catalog": self.products[:100],  # Limit catalog size
+                    "limit": limit
                 }
-                for rec in recommendations
-            ]
-        }
-        
-        # Process with ASI
-        result = self.api.process_with_asi({
-            "task": "rerank_recommendations",
-            "data": reranking_data
-        })
-        
-        if result.get("success", False) and "result" in result:
-            reranked_data = result["result"]
-            if isinstance(reranked_data, dict) and "reranked_ids" in reranked_data:
-                reranked_ids = reranked_data["reranked_ids"]
                 
-                # Map back to original recommendations
-                id_to_rec = {rec["product"]["id"]: rec for rec in recommendations}
-                reranked = [id_to_rec[id] for id in reranked_ids if id in id_to_rec]
+                # Process with real ASI
+                result = process_with_asi(self.api, affinity_data)
                 
-                # Add any missing recommendations (in case ASI returned fewer than requested)
-                seen_ids = set(reranked_ids)
-                for rec in recommendations:
-                    if rec["product"]["id"] not in seen_ids:
-                        reranked.append(rec)
-                        if len(reranked) >= count:
-                            break
-                
-                return reranked
+                # Handle the result
+                if isinstance(result, dict) and result.get("success", False) and "result" in result:
+                    affinity_result = result["result"]
+                    
+                    # Handle different output formats
+                    if isinstance(affinity_result, list):
+                        # If already a list of products
+                        return affinity_result[:limit]
+                    elif isinstance(affinity_result, dict):
+                        # If products are in a specific field
+                        if "related_products" in affinity_result:
+                            return affinity_result["related_products"][:limit]
+                        elif "products" in affinity_result:
+                            return affinity_result["products"][:limit]
+                        elif "affinity" in affinity_result:
+                            return affinity_result["affinity"][:limit]
+                    
+                    # Log success
+                    self.logger.info(f"Generated {len(affinity_result)} product affinities using ASI")
+            except Exception as e:
+                self.logger.error(f"Error analyzing product affinity with ASI: {str(e)}")
         
-        # Fallback to original order
-        return recommendations
+        # Fallback to category-based affinity
+        return self._category_based_affinity(source_product, limit)
+    
+    def _category_based_affinity(self, source_product: Dict, limit: int = 3) -> List[Dict]:
+        """Find products with similar categories."""
+        self.logger.info(f"Finding products with similar categories to {source_product['name']}")
+        
+        # Get products with the same category
+        similar_products = [
+            product for product in self.products 
+            if product["category"] == source_product["category"] and product["id"] != source_product["id"]
+        ]
+        
+        # Sort by rating and return top results
+        similar_products.sort(key=lambda p: p.get("rating", 0), reverse=True)
+        return similar_products[:limit]
     
     def explain_recommendation(self, product_id: str, user_id: str) -> str:
         """
@@ -513,8 +492,8 @@ class RecommendationEngine:
         
         user_prefs = self.user_preferences.get(user_id, {})
         
-        # Use MOCK-LLM for generating explanation if available
-        if self.api.has_mock_llm:
+        # Use real ASI for generating explanation if available
+        if self.api.has_asi:
             category_prefs = user_prefs.get("category_preferences", {})
             category_interest = category_prefs.get(product["category"], 0)
             
@@ -531,7 +510,7 @@ The user has shown interest in {product["category"]} products with a score of {c
 Generate a brief, personalized explanation (2-3 sentences) for why this product is being recommended.
 """
             
-            return self.api.generate_text(prompt)
+            return process_with_asi(self.api, {"task": "generate_explanation", "prompt": prompt})
         
         # Fallback explanation
         category = product.get("category", "")
@@ -585,15 +564,19 @@ def display_recommendations(recommendations: List[Dict[str, Any]]):
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(description="E-commerce Recommendation Engine")
-    parser.add_argument("--user", type=str, default="demo_user", help="User ID")
     parser.add_argument("--catalog", type=str, help="Path to product catalog JSON file")
-    parser.add_argument("--count", type=int, default=5, help="Number of recommendations")
-    parser.add_argument("--strategy", type=str, choices=["content", "collaborative", "hybrid"],
-                       default="hybrid", help="Recommendation strategy")
+    parser.add_argument("--user", type=str, default="user123", help="User ID to generate recommendations for")
+    parser.add_argument("--product", type=str, help="Product ID to find related products for")
+    parser.add_argument("--limit", type=int, default=5, help="Maximum number of recommendations to return")
+    parser.add_argument("--context", type=str, help="Context for recommendation as JSON string")
+    
     args = parser.parse_args()
     
     # Configure logging
     logging.basicConfig(level=logging.INFO)
+    
+    # Ensure USE_REAL_ASI is set to true
+    os.environ['USE_REAL_ASI'] = 'true'
     
     # Initialize the recommendation engine
     engine = RecommendationEngine(args.catalog)

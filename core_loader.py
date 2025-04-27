@@ -39,7 +39,7 @@ def _load_encrypted_module(enc_path, module_name):
             return None
         
         # Load the salt
-        with open("/home/umesh/Desktop/AGI_GitHub_Release/keys/salt.bin", "rb") as f:
+        with open("/home/umesh/Desktop/net test/AGI-GitHub-Release/keys/salt.bin", "rb") as f:
             salt = f.read()
         
         # Generate the key

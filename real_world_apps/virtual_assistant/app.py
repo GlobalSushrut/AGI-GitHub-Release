@@ -27,7 +27,8 @@ from typing import Dict, List, Any, Optional, Tuple
 # Add the parent directory to path so we can import the AGI Toolkit
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-# Import the AGI Toolkit
+# Import the ASI helper module and AGI Toolkit
+from real_world_apps.asi_helper import initialize_asi_components
 from agi_toolkit import AGIAPI
 
 
@@ -50,6 +51,12 @@ class VirtualAssistant:
         self.logger.setLevel(logging.INFO)
         
         self.logger.info(f"Initializing Virtual Assistant '{name}'")
+        
+        # Initialize real ASI components
+        initialize_asi_components()
+        
+        # Set environment variable to ensure interface uses real components
+        os.environ['USE_REAL_ASI'] = 'true'
         
         # Initialize the AGI Toolkit API
         self.api = AGIAPI()
@@ -225,22 +232,39 @@ class VirtualAssistant:
                 if self.api.has_mock_llm:
                     response = self.api.generate_text(prompt)
                 else:
+                    # Use real ASI for intent detection with proper formatting
                     response = self.api.process_with_asi({
                         "task": "intent_detection",
                         "message": message
                     })
-                
-                # Try to parse JSON response
-                import json
-                
-                # Extract JSON from response (might be surrounded by text)
-                json_match = re.search(r'({.*})', response, re.DOTALL)
-                if json_match:
-                    json_str = json_match.group(1)
-                    result = json.loads(json_str)
                     
-                    if "intent" in result:
-                        return result["intent"], result.get("entities", {})
+                    # Process the ASI response
+                    if isinstance(response, dict) and 'result' in response:
+                        result_data = response['result']
+                        # Extract intent and entities directly if available
+                        if isinstance(result_data, dict):
+                            if 'intent' in result_data:
+                                return result_data['intent'], result_data.get('entities', {})
+                    
+                    # Try to parse JSON response as fallback
+                    try:
+                        # JSON might be in the response text or we might have a string result
+                        response_text = response
+                        if isinstance(response, dict) and 'text' in response:
+                            response_text = response['text']
+                        elif isinstance(response, dict) and 'result' in response and isinstance(response['result'], str):
+                            response_text = response['result']
+                            
+                        # Extract JSON from response (might be surrounded by text)
+                        json_match = re.search(r'({.*})', str(response_text), re.DOTALL)
+                        if json_match:
+                            json_str = json_match.group(1)
+                            result = json.loads(json_str)
+                            
+                            if "intent" in result:
+                                return result["intent"], result.get("entities", {})
+                    except Exception as e:
+                        self.logger.warning(f"Error parsing JSON from response: {str(e)}")
             except Exception as e:
                 self.logger.error(f"Error parsing intent detection response: {str(e)}")
         
@@ -495,11 +519,34 @@ class VirtualAssistant:
                     response += f"{i}. {info}\n"
                 return response
         
-        # If we have MOCK-LLM, try to generate a reasonable response
-        if self.api.has_mock_llm:
-            prompt = f"Provide a brief answer to: '{query}'"
-            generated = self.api.generate_text(prompt)
-            return generated
+        # Try to use ASI to generate a response based on the query
+        try:
+            if self.api.has_asi:
+                # Import ASI helper for knowledge retrieval
+                from real_world_apps.asi_helper import process_with_asi
+                
+                result = process_with_asi(self.api, {
+                    "task": "answer_question",
+                    "question": query,
+                    "context": str(self.knowledge)  # Provide knowledge as context
+                })
+                
+                if isinstance(result, dict) and result.get('success', False):
+                    if 'result' in result:
+                        if isinstance(result['result'], dict) and 'answer' in result['result']:
+                            return result['result']['answer']
+                        elif isinstance(result['result'], dict) and 'text' in result['result']:
+                            return result['result']['text']
+                        elif isinstance(result['result'], str) and len(result['result']) > 0:
+                            return result['result']
+            
+            # Fall back to MOCK-LLM if ASI didn't produce a usable result
+            if self.api.has_mock_llm:
+                prompt = f"Provide a brief answer to: '{query}'"
+                generated = self.api.generate_text(prompt)
+                return generated
+        except Exception as e:
+            self.logger.error(f"Error using ASI for question answering: {str(e)}")
         
         return f"I don't have any information about {query}."
     
@@ -540,21 +587,51 @@ You can also just chat with me about anything!
     
     def _generate_general_response(self, message: str) -> str:
         """Generate a general response for the message."""
-        # If we have MOCK-LLM, use it to generate a response
-        if self.api.has_mock_llm:
-            # Format conversation history for context
-            history_text = ""
-            for entry in self.conversation_history[-5:]:  # Last 5 entries
-                role = "User" if entry.get("role") == "user" else self.name
-                history_text += f"{role}: {entry.get('content')}\n"
+        # Try using ASI for generating a response first
+        try:
+            if self.api.has_asi:
+                # Format conversation history for context
+                history_text = ""
+                for entry in self.conversation_history[-5:]:  # Last 5 entries
+                    role = "User" if entry.get("role") == "user" else self.name
+                    history_text += f"{role}: {entry.get('content')}\n"
+                
+                # Import ASI helper for text generation
+                from real_world_apps.asi_helper import process_with_asi
+                
+                result = process_with_asi(self.api, {
+                    "task": "generate_response",
+                    "message": message,
+                    "context": history_text,
+                    "assistant_name": self.name
+                })
+                
+                if isinstance(result, dict) and result.get('success', False):
+                    if 'result' in result:
+                        if isinstance(result['result'], dict) and 'response' in result['result']:
+                            return result['result']['response']
+                        elif isinstance(result['result'], dict) and 'text' in result['result']:
+                            return result['result']['text']
+                        elif isinstance(result['result'], str) and len(result['result']) > 0:
+                            return result['result']
             
-            prompt = f"""
-            {history_text}
-            
-            {self.name}: 
-            """
-            
-            return self.api.generate_text(prompt)
+            # Fall back to MOCK-LLM if ASI didn't produce a usable result
+            if self.api.has_mock_llm:
+                # Format conversation history for context
+                history_text = ""
+                for entry in self.conversation_history[-5:]:  # Last 5 entries
+                    role = "User" if entry.get("role") == "user" else self.name
+                    history_text += f"{role}: {entry.get('content')}\n"
+                
+                prompt = f"""
+                {history_text}
+                
+                {self.name}: 
+                """
+                
+                return self.api.generate_text(prompt)
+        except Exception as e:
+            self.logger.error(f"Error using ASI for response generation: {str(e)}")
         
         # Fallback responses for demo
         fallback_responses = [
@@ -639,6 +716,9 @@ def main():
     
     # Configure logging
     logging.basicConfig(level=logging.INFO)
+    
+    # Ensure USE_REAL_ASI is set to true
+    os.environ['USE_REAL_ASI'] = 'true'
     
     # Initialize the virtual assistant
     assistant = VirtualAssistant(name=args.name)

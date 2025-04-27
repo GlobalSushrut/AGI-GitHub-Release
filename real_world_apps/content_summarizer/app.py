@@ -23,8 +23,10 @@ from typing import Dict, List, Any, Optional
 # Add the parent directory to path so we can import the AGI Toolkit
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-# Import the AGI Toolkit
+# Import the AGI Toolkit and ASI helper
 from agi_toolkit import AGIAPI
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from asi_helper import initialize_asi_components, process_with_asi, generate_summary, extract_key_points
 
 class ContentSummarizer:
     """A tool for summarizing content using AGI Toolkit."""
@@ -40,6 +42,11 @@ class ContentSummarizer:
         self.logger.setLevel(logging.INFO)
         
         self.logger.info("Initializing Content Summarizer")
+        
+        # Initialize real ASI components if env var is set
+        if os.environ.get('USE_REAL_ASI') == 'true':
+            # Initialize the real ASI components
+            initialize_asi_components()
         
         # Initialize the AGI Toolkit API
         self.api = AGIAPI()
@@ -90,31 +97,142 @@ class ContentSummarizer:
 Focus on the main points and key information.
 """
         
-        # Generate summary using MOCK-LLM
-        if self.api.has_mock_llm:
+        # Try to generate summary using real ASI first if available, otherwise MOCK-LLM
+        if self.api.has_asi:
+            self.logger.info("Using real ASI for summary generation")
+            
+            # Create a request for summary generation
+            summary_request = {
+                "task": "generate_summary",
+                "content": text[:5000],  # Limit content size
+                "length": length
+            }
+            
+            # Use our optimized asi_helper function if available
+            if os.environ.get('USE_REAL_ASI') == 'true' and 'generate_summary' in globals():
+                result = generate_summary(text[:5000], length)
+            else:
+                # Fallback to regular ASI processing
+                result = self.api.process_with_asi(summary_request)
+            
+            if result.get("success", False) and "result" in result:
+                points_data = result["result"]
+                
+                # Try to extract a summary from the ASI output
+                if isinstance(points_data, dict):
+                    if "summary" in points_data:  # Our optimized format
+                        self.logger.info("Found summary in ASI output")
+                        summary = points_data["summary"]
+                    elif "text" in points_data:  # Direct text output
+                        self.logger.info("Found text in ASI output")
+                        summary = points_data["text"]
+                    elif "insight" in points_data:  # Insight text
+                        self.logger.info("Found insight in ASI output")
+                        summary = points_data["insight"]
+                    elif "points" in points_data:  # Points-based output
+                        # Join points to form a summary
+                        self.logger.info("Found points in ASI output")
+                        summary = ". ".join(points_data["points"])
+                    else:
+                        # Try to find any string values in the dictionary
+                        str_values = [v for v in points_data.values() if isinstance(v, str) and len(v) > 30]
+                        if str_values:
+                            self.logger.info("Using string value from ASI output")
+                            summary = str_values[0]  # Use the first substantial string
+                        else:
+                            # Fallback to default summarization
+                            self.logger.info("No usable summary in ASI output, using fallback")
+                            summary = self._fallback_summarize(text, length)
+                else:
+                    # If we got a string directly
+                    if isinstance(points_data, str) and len(points_data) > 30:
+                        summary = points_data
+                    else:
+                        # Fallback to default summarization
+                        summary = self._fallback_summarize(text, length)
+            else:
+                # Fallback to MOCK-LLM or default summarization
+                if self.api.has_mock_llm:
+                    summary = self.api.generate_text(prompt)
+                else:
+                    summary = self._fallback_summarize(text, length)
+        elif self.api.has_mock_llm:
             summary = self.api.generate_text(prompt)
         else:
-            # Fallback summarization if MOCK-LLM is not available
+            # Fallback summarization if neither ASI nor MOCK-LLM is available
             summary = self._fallback_summarize(text, length)
         
         # Extract key points using ASI if available
         key_points = []
         if self.api.has_asi:
+            # Format input suitable for ASI pattern discovery or insight generation
+            text_sample = text[:5000]  # Limit content size
+            
+            self.logger.info("Using real ASI for key point extraction")
+            
+            # Try insight generation approach with optimized format for ASI
             result = self.api.process_with_asi({
                 "task": "extract_key_points",
-                "content": text[:5000],  # Limit content size
+                "content": text_sample,
                 "max_points": 5
             })
             
+            self.logger.info(f"ASI result: {result}")
+            
             if result.get("success", False) and "result" in result:
-                # Extract key points from the result
+                # Handle the response from real ASI components
                 points_data = result["result"]
-                if isinstance(points_data, dict) and "points" in points_data:
-                    key_points = points_data["points"]
+                
+                # Different output formats based on which ASI function was used
+                if isinstance(points_data, dict):
+                    if "points" in points_data:  # Our optimized format
+                        self.logger.info("Found points in expected format")
+                        key_points = points_data["points"]
+                    elif "patterns" in points_data:  # Pattern discovery output
+                        self.logger.info("Found patterns in ASI output")
+                        # Extract patterns as key points
+                        patterns = points_data.get("patterns", [])
+                        for pattern in patterns:
+                            if isinstance(pattern, dict):
+                                # Try different fields that might contain useful text
+                                if "description" in pattern:
+                                    key_points.append(pattern["description"])
+                                elif "concept" in pattern:
+                                    key_points.append(pattern["concept"])
+                    elif "text" in points_data:  # Insight generation output
+                        self.logger.info("Found text in ASI output")
+                        insight_text = points_data.get("text", "")
+                        # Split insight into sentences
+                        sentences = insight_text.split(". ")
+                        for sentence in sentences:
+                            if sentence and len(sentence) > 10:  # Only substantial sentences
+                                key_points.append(sentence)
+                    elif "insight" in points_data:  # Another insight format
+                        self.logger.info("Found insight in ASI output")
+                        insight_text = points_data.get("insight", "")
+                        # Split insight into sentences
+                        sentences = insight_text.split(". ")
+                        for sentence in sentences:
+                            if sentence and len(sentence) > 10:  # Only substantial sentences
+                                key_points.append(sentence)
                 elif isinstance(points_data, list):
+                    self.logger.info("Found list in ASI output")
                     key_points = points_data
                 else:
-                    key_points = [str(points_data)]
+                    # Try to extract something useful from whatever we got
+                    text_repr = str(points_data)
+                    sentences = text_repr.split(". ")
+                    for sentence in sentences:
+                        if sentence and len(sentence) > 10:  # Only substantial sentences
+                            key_points.append(sentence)
+                    
+                    if not key_points:  # If we still don't have points
+                        key_points = [f"Key point from ASI analysis: {str(points_data)[:100]}"]  
+            
+            # Ensure we have at least some key points
+            if not key_points:
+                self.logger.warning("No key points extracted from ASI output, using fallback")
+                key_points = self._extract_key_points(text)
         else:
             # Fallback key points extraction
             key_points = self._extract_key_points(text)

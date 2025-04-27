@@ -24,7 +24,8 @@ from typing import Dict, List, Any, Optional
 # Add the parent directory to path so we can import the AGI Toolkit
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-# Import the AGI Toolkit
+# Import the ASI helper module and AGI Toolkit
+from real_world_apps.asi_helper import initialize_asi_components
 from agi_toolkit import AGIAPI
 from course_manager import CourseManager
 from student_manager import StudentManager
@@ -44,6 +45,12 @@ class LearningPlatform:
         self.logger.setLevel(logging.INFO)
         
         self.logger.info("Initializing Learning Platform")
+        
+        # Initialize real ASI components
+        initialize_asi_components()
+        
+        # Set environment variable to ensure interface uses real components
+        os.environ['USE_REAL_ASI'] = 'true'
         
         # Initialize the AGI Toolkit API
         self.api = AGIAPI()

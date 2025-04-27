@@ -88,12 +88,16 @@ class MOCKLLMInterface:
     def _check_mock_llm_available(self) -> bool:
         """Check if MOCK-LLM components are available."""
         try:
-            # Try to import key MOCK-LLM modules
-            import mock_llm.models.mock_flux_transformer
-            import mock_llm.memory.non_euclidean_memory
-            return True
+            # Check if MOCK_LLM_INSTANCE is available in builtins
+            import builtins
+            return hasattr(builtins, 'MOCK_LLM_INSTANCE')
         except ImportError:
-            return False
+            try:
+                # Traditional method - try to import MOCK-LLM modules
+                import mock_llm.main
+                return True
+            except ImportError:
+                return False
     
     def generate_text(self, prompt: str, max_length: int = 100) -> str:
         """

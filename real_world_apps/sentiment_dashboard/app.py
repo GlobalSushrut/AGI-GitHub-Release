@@ -25,7 +25,8 @@ from typing import Dict, List, Any, Optional, Tuple
 # Add the parent directory to path so we can import the AGI Toolkit
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-# Import the AGI Toolkit
+# Import the ASI helper module and AGI Toolkit
+from real_world_apps.asi_helper import initialize_asi_components, analyze_sentiment
 from agi_toolkit import AGIAPI
 
 class SentimentAnalyzer:
@@ -42,6 +43,12 @@ class SentimentAnalyzer:
         self.logger.setLevel(logging.INFO)
         
         self.logger.info("Initializing Sentiment Analyzer")
+        
+        # Initialize real ASI components
+        initialize_asi_components()
+        
+        # Set environment variable to ensure interface uses real components
+        os.environ['USE_REAL_ASI'] = 'true'
         
         # Initialize the AGI Toolkit API
         self.api = AGIAPI()
@@ -72,12 +79,28 @@ class SentimentAnalyzer:
         if timestamp is None:
             timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
-        # Use MOCK-LLM for sentiment classification if available
+        # Try to use real ASI for sentiment analysis first
         sentiment_score = 0.0
         sentiment_label = "neutral"
         confidence = 0.5
         
-        if self.api.has_mock_llm:
+        if self.api.has_asi:
+            try:
+                # Use the sentiment analysis helper
+                sentiment_result = analyze_sentiment(self.api, text)
+                
+                if isinstance(sentiment_result, dict):
+                    # Extract values from the result
+                    sentiment_score = sentiment_result.get('score', 0.0)
+                    sentiment_label = sentiment_result.get('label', 'neutral')
+                    confidence = sentiment_result.get('confidence', 0.5) if 'confidence' in sentiment_result else 0.8
+                    
+                    self.logger.info(f"ASI sentiment analysis: {sentiment_label} (score: {sentiment_score})")
+            except Exception as e:
+                self.logger.error(f"Error using ASI for sentiment analysis: {str(e)}")
+        
+        # Use MOCK-LLM as fallback if ASI failed or is not available
+        if (sentiment_label == "neutral" and abs(sentiment_score) < 0.2) and self.api.has_mock_llm:
             classification_prompt = f"""Classify the sentiment of the following text:
 
 {text}
@@ -97,8 +120,8 @@ Return only one of these labels: positive, negative, or neutral
             else:  # neutral
                 sentiment_score = 0.1
                 confidence = 0.6
-        else:
-            # Fallback sentiment analysis
+        elif not self.api.has_asi and not self.api.has_mock_llm:
+            # Use fallback sentiment analysis if neither ASI nor MOCK-LLM are available
             sentiment_score, sentiment_label, confidence = self._analyze_sentiment_fallback(text)
         
         # Use ASI for more advanced analysis if available
@@ -106,30 +129,52 @@ Return only one of these labels: positive, negative, or neutral
         aspects = {}
         
         if self.api.has_asi:
-            # Emotion detection
-            emotion_result = self.api.process_with_asi({
-                "task": "detect_emotions",
-                "text": text
-            })
-            
-            if emotion_result.get("success", False) and "result" in emotion_result:
-                emotions_data = emotion_result["result"]
-                if isinstance(emotions_data, dict):
-                    emotions = emotions_data
-            
-            # Aspect-based sentiment analysis
-            aspect_result = self.api.process_with_asi({
-                "task": "aspect_sentiment",
-                "text": text
-            })
-            
-            if aspect_result.get("success", False) and "result" in aspect_result:
-                aspects_data = aspect_result["result"]
-                if isinstance(aspects_data, dict):
-                    aspects = aspects_data
-        else:
-            # Fallback emotion detection and aspect analysis
+            try:
+                # Import ASI helper for process_with_asi
+                from real_world_apps.asi_helper import process_with_asi
+                
+                # Emotion detection
+                emotion_result = process_with_asi(self.api, {
+                    "task": "detect_emotions",
+                    "text": text
+                })
+                
+                if isinstance(emotion_result, dict) and emotion_result.get("success", False) and "result" in emotion_result:
+                    emotions_data = emotion_result["result"]
+                    if isinstance(emotions_data, dict):
+                        # Check for different possible formats of emotion data
+                        if "emotions" in emotions_data:
+                            emotions = emotions_data["emotions"]
+                        elif any(emotion in emotions_data for emotion in ["joy", "anger", "sadness", "fear", "surprise"]):
+                            emotions = emotions_data
+                        elif isinstance(emotions_data, dict):
+                            # Use any dict that looks like emotion data
+                            emotions = {k: v for k, v in emotions_data.items() 
+                                       if isinstance(k, str) and isinstance(v, (int, float))
+                                       and k.lower() in ["joy", "happiness", "anger", "sadness", "fear", 
+                                                       "surprise", "disgust", "trust", "anticipation"]}
+                
+                # Aspect-based sentiment analysis
+                aspect_result = process_with_asi(self.api, {
+                    "task": "aspect_sentiment",
+                    "text": text
+                })
+                
+                if isinstance(aspect_result, dict) and aspect_result.get("success", False) and "result" in aspect_result:
+                    aspects_data = aspect_result["result"]
+                    if isinstance(aspects_data, dict):
+                        # Check for different possible formats of aspect data
+                        if "aspects" in aspects_data:
+                            aspects = aspects_data["aspects"]
+                        elif any(isinstance(v, dict) and "sentiment" in v for v in aspects_data.values()):
+                            aspects = aspects_data
+            except Exception as e:
+                self.logger.error(f"Error in advanced sentiment analysis with ASI: {str(e)}")
+                
+        # Fallback emotion detection and aspect analysis if needed
+        if not emotions:
             emotions = self._detect_emotions_fallback(text)
+        if not aspects:
             aspects = self._analyze_aspects_fallback(text)
         
         # Create the result
@@ -518,12 +563,14 @@ def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(description="Sentiment Analysis Dashboard")
     parser.add_argument("--text", type=str, help="Single text to analyze")
-    parser.add_argument("--source", type=str, default="user_input", help="Source of the text")
-    parser.add_argument("--load", type=str, help="Load sentiment history from file")
-    parser.add_argument("--save", type=str, help="Save sentiment history to file")
+    parser.add_argument("--file", type=str, help="JSON file with texts to analyze in batch")
+    parser.add_argument("--demo", action="store_true", help="Run with demo data")
     parser.add_argument("--trends", action="store_true", help="Show sentiment trends")
     parser.add_argument("--period", type=str, choices=["all", "day", "week", "month"], 
                         default="all", help="Time period for trend analysis")
+    parser.add_argument("--load", type=str, help="Load sentiment history from file")
+    parser.add_argument("--save", type=str, help="Save sentiment history to file")
+    parser.add_argument("--source", type=str, default="user_input", help="Source of the text")
     args = parser.parse_args()
     
     # Configure logging

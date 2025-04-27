@@ -26,7 +26,8 @@ from datetime import datetime
 # Add the parent directory to path so we can import the AGI Toolkit
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-# Import the AGI Toolkit
+# Import the ASI helper module and AGI Toolkit
+from real_world_apps.asi_helper import initialize_asi_components, translate_text
 from agi_toolkit import AGIAPI
 
 
@@ -73,6 +74,12 @@ class TranslationService:
         self.logger.setLevel(logging.INFO)
         
         self.logger.info("Initializing Translation Service")
+        
+        # Initialize real ASI components
+        initialize_asi_components()
+        
+        # Set environment variable to ensure interface uses real components
+        os.environ['USE_REAL_ASI'] = 'true'
         
         # Initialize the AGI Toolkit API
         self.api = AGIAPI()
@@ -122,6 +129,40 @@ class TranslationService:
         """
         self.logger.info(f"Detecting language for text: {text[:50]}...")
         
+        # Try using ASI for language detection first
+        if self.api.has_asi:
+            try:
+                # Import ASI helper for language detection
+                from real_world_apps.asi_helper import process_with_asi
+                
+                result = process_with_asi(self.api, {
+                    "task": "detect_language",
+                    "text": text[:1000]  # Limit text size
+                })
+                
+                if isinstance(result, dict) and result.get("success", False) and "result" in result:
+                    lang_data = result["result"]
+                    
+                    # Extract language code based on different possible formats
+                    if isinstance(lang_data, dict):
+                        # Try different field names that might contain language info
+                        for field in ["language", "language_code", "code", "lang"]:
+                            if field in lang_data:
+                                lang_code = lang_data[field].lower()
+                                # Validate the code
+                                for _, code in self.SUPPORTED_LANGUAGES.items():
+                                    if code == lang_code:
+                                        return code
+                    elif isinstance(lang_data, str):
+                        lang_code = lang_data.lower()
+                        # Check if it's a language name or code
+                        for lang, code in self.SUPPORTED_LANGUAGES.items():
+                            if code == lang_code or lang.lower() == lang_code:
+                                return code
+            except Exception as e:
+                self.logger.error(f"Error detecting language with ASI: {str(e)}")
+        
+        # Fall back to MOCK-LLM if available
         if self.api.has_mock_llm:
             # Use MOCK-LLM for language detection
             prompt = f"Detect the language of the following text. Respond with only the language code (e.g., 'en', 'es', 'fr', etc.):\n\n{text}"
@@ -279,7 +320,45 @@ class TranslationService:
         # Perform the translation
         self.logger.info(f"Translating from {source_lang} to {target_lang} (domain: {domain})")
         
-        # If MOCK-LLM is available, use it for translation
+        # Try using ASI for translation first
+        if self.api.has_asi:
+            try:
+                # Use the translation helper function
+                source_lang_name = self.get_language_name(source_lang)
+                target_lang_name = self.get_language_name(target_lang)
+                
+                # Prepare context information including domain
+                context_info = f"Domain: {domain}"
+                if context:
+                    context_info += f". Additional context: {context}"
+                
+                # Perform the translation using the ASI helper
+                translated_text = translate_text(self.api, text, source_lang, target_lang)
+                
+                if translated_text and translated_text != text:  # Check that we got a valid translation
+                    # Save to translation memory
+                    timestamp = datetime.now().isoformat()
+                    self.translation_memory[memory_key] = {
+                        "translation": translated_text,
+                        "created": timestamp,
+                        "last_used": timestamp
+                    }
+                    self.save_translation_memory()
+                    
+                    return {
+                        "success": True,
+                        "text": text,
+                        "translated_text": translated_text,
+                        "source_lang": source_lang,
+                        "target_lang": target_lang,
+                        "domain": domain,
+                        "source_confidence": 0.95,
+                        "engine": "ASI"
+                    }
+            except Exception as e:
+                self.logger.error(f"Error translating with ASI: {str(e)}")
+        
+        # Fall back to MOCK-LLM if available
         if self.api.has_mock_llm:
             # Create a prompt for the translation
             source_lang_name = self.get_language_name(source_lang)
@@ -316,7 +395,8 @@ class TranslationService:
                 "source_lang": source_lang,
                 "target_lang": target_lang,
                 "domain": domain,
-                "source_confidence": 0.9
+                "source_confidence": 0.9,
+                "engine": "MOCK-LLM"
             }
         else:
             # Fallback translation for demonstration purposes
@@ -513,14 +593,13 @@ def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(description="Language Translation Service")
     parser.add_argument("--text", type=str, help="Text to translate")
-    parser.add_argument("--source", type=str, help="Source language code (auto-detect if not specified)")
-    parser.add_argument("--target", type=str, default="en", help="Target language code")
-    parser.add_argument("--domain", type=str, default="general", 
-                        choices=["general", "technical", "medical", "legal", "business", "academic"],
-                        help="Domain for specialized translation")
-    parser.add_argument("--context", type=str, help="Additional context to improve translation")
-    parser.add_argument("--batch", type=str, help="Path to file with batch translation texts (one per line)")
-    parser.add_argument("--list-languages", action="store_true", help="List supported languages")
+    parser.add_argument("--source", type=str, help="Source language code (auto-detect if not provided)")
+    parser.add_argument("--target", type=str, required=True, help="Target language code")
+    parser.add_argument("--domain", type=str, default="general", help="Domain for specialized translation")
+    parser.add_argument("--context", type=str, help="Additional context for translation")
+    parser.add_argument("--detect", type=str, help="Detect language of this text")
+    parser.add_argument("--list_languages", action="store_true", help="List supported languages and domains")
+    parser.add_argument("--batch", type=str, help="Path to file with texts for batch translation")
     
     args = parser.parse_args()
     

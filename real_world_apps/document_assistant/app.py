@@ -25,7 +25,8 @@ import re
 # Add the parent directory to path so we can import the AGI Toolkit
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-# Import the AGI Toolkit
+# Import the ASI helper module and AGI Toolkit
+from real_world_apps.asi_helper import initialize_asi_components, analyze_document, extract_key_points
 from agi_toolkit import AGIAPI
 
 class DocumentAssistant:
@@ -42,6 +43,12 @@ class DocumentAssistant:
         self.logger.setLevel(logging.INFO)
         
         self.logger.info("Initializing Document Assistant")
+        
+        # Initialize real ASI components
+        initialize_asi_components()
+        
+        # Set environment variable to ensure interface uses real components
+        os.environ['USE_REAL_ASI'] = 'true'
         
         # Initialize the AGI Toolkit API
         self.api = AGIAPI()
@@ -109,15 +116,23 @@ class DocumentAssistant:
         
         # Use ASI for advanced categorization if available
         if self.api.has_asi:
-            result = self.api.process_with_asi({
+            # Import ASI helper for document analysis
+            from real_world_apps.asi_helper import process_with_asi
+            
+            # Process with real ASI engine
+            result = process_with_asi(self.api, {
                 "task": "categorize_document",
                 "content": text[:5000]  # Limit content size
             })
             
-            if result.get("success", False) and "result" in result:
+            if isinstance(result, dict) and result.get("success", False) and "result" in result:
                 category_data = result["result"]
-                if isinstance(category_data, dict) and "category" in category_data:
-                    return category_data["category"]
+                # Extract category from various result formats
+                if isinstance(category_data, dict):
+                    # Try different field names that might contain category info
+                    for field in ["category", "document_type", "type", "classification"]:
+                        if field in category_data:
+                            return category_data[field]
                 elif isinstance(category_data, str):
                     return category_data
         
@@ -150,7 +165,66 @@ class DocumentAssistant:
         """Extract entities from the document."""
         self.logger.info("Extracting entities")
         
-        # Use MOCK-LLM for entity extraction if available
+        # Try using real ASI for entity extraction first
+        if self.api.has_asi:
+            try:
+                # Import ASI helper for entity extraction
+                from real_world_apps.asi_helper import process_with_asi
+                
+                result = process_with_asi(self.api, {
+                    "task": "extract_entities",
+                    "content": text[:5000]  # Limit content size
+                })
+                
+                if isinstance(result, dict) and result.get("success", False) and "result" in result:
+                    entities_data = result["result"]
+                    
+                    # Handle different output formats
+                    if isinstance(entities_data, dict):
+                        # If result already has our expected structure
+                        if all(key in entities_data for key in ["people", "organizations", "locations", "dates"]):
+                            return {
+                                "people": entities_data.get("people", []),
+                                "organizations": entities_data.get("organizations", []),
+                                "locations": entities_data.get("locations", []),
+                                "dates": entities_data.get("dates", [])
+                            }
+                        # Try to extract entities from other formats
+                        elif "entities" in entities_data:
+                            entity_groups = {}
+                            for entity in entities_data["entities"]:
+                                if isinstance(entity, dict) and "type" in entity and "text" in entity:
+                                    entity_type = entity["type"].lower()
+                                    entity_text = entity["text"]
+                                    
+                                    # Map to our categories
+                                    if entity_type in ["person", "people"]:
+                                        if "people" not in entity_groups:
+                                            entity_groups["people"] = []
+                                        entity_groups["people"].append(entity_text)
+                                    elif entity_type in ["organization", "org", "company"]:
+                                        if "organizations" not in entity_groups:
+                                            entity_groups["organizations"] = []
+                                        entity_groups["organizations"].append(entity_text)
+                                    elif entity_type in ["location", "place", "gpe"]:
+                                        if "locations" not in entity_groups:
+                                            entity_groups["locations"] = []
+                                        entity_groups["locations"].append(entity_text)
+                                    elif entity_type in ["date", "time"]:
+                                        if "dates" not in entity_groups:
+                                            entity_groups["dates"] = []
+                                        entity_groups["dates"].append(entity_text)
+                            
+                            # Ensure all entity types exist
+                            for key in ["people", "organizations", "locations", "dates"]:
+                                if key not in entity_groups:
+                                    entity_groups[key] = []
+                            
+                            return entity_groups
+            except Exception as e:
+                self.logger.error(f"Error extracting entities with ASI: {str(e)}")
+        
+        # Fallback to MOCK-LLM if available
         if self.api.has_mock_llm:
             prompt = f"""Extract all people, organizations, locations, and dates from the following text:
 
@@ -301,15 +375,26 @@ Dates: [list of dates]
         
         # Use ASI for action item identification if available
         if self.api.has_asi:
-            result = self.api.process_with_asi({
+            # Import ASI helper for action item identification
+            from real_world_apps.asi_helper import process_with_asi
+            
+            result = process_with_asi(self.api, {
                 "task": "identify_action_items",
                 "content": text[:5000]  # Limit content size
             })
             
-            if result.get("success", False) and "result" in result:
+            if isinstance(result, dict) and result.get("success", False) and "result" in result:
                 actions_data = result["result"]
-                if isinstance(actions_data, dict) and "actions" in actions_data:
-                    return actions_data["actions"]
+                # Handle different output formats
+                if isinstance(actions_data, dict):
+                    # Try various field names for actions
+                    for field in ["actions", "action_items", "tasks", "todos"]:
+                        if field in actions_data and isinstance(actions_data[field], list):
+                            return actions_data[field]
+                    
+                    # If we have a points field (like key points), treat them as actions
+                    if "points" in actions_data and isinstance(actions_data["points"], list):
+                        return [p for p in actions_data["points"] if any(kw in p.lower() for kw in ["must", "should", "need", "require", "please", "by", "due", "deadline"])]                  
                 elif isinstance(actions_data, list):
                     return actions_data
         
@@ -338,7 +423,19 @@ Dates: [list of dates]
         """Generate a summary of the document."""
         self.logger.info("Generating document summary")
         
-        # Use MOCK-LLM for summary generation if available
+        # Use ASI for summary generation if available
+        if self.api.has_asi:
+            try:
+                # Import ASI helper for summary generation
+                from real_world_apps.asi_helper import generate_summary
+                
+                summary = generate_summary(self.api, text[:5000], "medium")
+                if summary:
+                    return summary
+            except Exception as e:
+                self.logger.error(f"Error generating summary with ASI: {str(e)}")
+        
+        # Fallback to MOCK-LLM if available
         if self.api.has_mock_llm:
             prompt = f"""Summarize the following document in 3-4 sentences:
 
@@ -358,18 +455,40 @@ Dates: [list of dates]
         
         # Use ASI for insights extraction if available
         if self.api.has_asi:
-            result = self.api.process_with_asi({
-                "task": "extract_insights",
-                "content": text[:5000],  # Limit content size
-                "category": category
-            })
-            
-            if result.get("success", False) and "result" in result:
-                insights_data = result["result"]
-                if isinstance(insights_data, dict) and "insights" in insights_data:
-                    return insights_data["insights"]
-                elif isinstance(insights_data, list):
-                    return insights_data
+            try:
+                # First try using our helper function to extract key points
+                insights = extract_key_points(self.api, text[:5000], max_points=5)
+                if insights and len(insights) > 0:
+                    return insights
+                
+                # Alternatively, try directly with process_with_asi
+                from real_world_apps.asi_helper import process_with_asi
+                
+                result = process_with_asi(self.api, {
+                    "task": "extract_insights",
+                    "content": text[:5000],  # Limit content size
+                    "category": category
+                })
+                
+                if isinstance(result, dict) and result.get("success", False) and "result" in result:
+                    insights_data = result["result"]
+                    # Handle different output formats
+                    if isinstance(insights_data, dict):
+                        # Try various field names for insights
+                        for field in ["insights", "key_points", "takeaways", "points", "patterns"]:
+                            if field in insights_data and isinstance(insights_data[field], list):
+                                return insights_data[field]
+                        
+                        # Try text fields that might contain insights
+                        for field in ["insight", "text", "analysis"]:
+                            if field in insights_data and isinstance(insights_data[field], str):
+                                # Split text into sentences
+                                sentences = insights_data[field].split(". ")
+                                return [s.strip() + "." for s in sentences if len(s.strip()) > 10][:5]
+                    elif isinstance(insights_data, list):
+                        return insights_data
+            except Exception as e:
+                self.logger.error(f"Error extracting insights with ASI: {str(e)}")
         
         # Fallback insights extraction
         insights = []
@@ -471,6 +590,9 @@ def main():
     
     # Configure logging
     logging.basicConfig(level=logging.INFO)
+    
+    # Ensure USE_REAL_ASI is set to true
+    os.environ['USE_REAL_ASI'] = 'true'
     
     # Initialize the document assistant
     assistant = DocumentAssistant()

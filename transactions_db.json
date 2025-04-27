@@ -47,6 +47,14 @@
       "description": "Demo transaction",
       "timestamp": "2025-04-26T13:35:21.111806",
       "id": "tx-20250426133521-5"
+    },
+    {
+      "account_id": "demo1",
+      "tx_id": "tx001",
+      "amount": 100.0,
+      "description": "Demo transaction",
+      "timestamp": "2025-04-27T09:59:06.131338",
+      "id": "tx-20250427095906-6"
     }
   ]
 }

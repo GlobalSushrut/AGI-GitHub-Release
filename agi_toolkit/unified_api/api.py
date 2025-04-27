@@ -66,14 +66,32 @@ class AGIAPI:
         
         self.logger.info("Initializing AGI Toolkit API")
         
+        # Check for globally initialized components first
+        try:
+            import builtins
+            global_asi_available = hasattr(builtins, 'ASI_INSTANCE')
+            global_llm_available = hasattr(builtins, 'MOCK_LLM_INSTANCE')
+            
+            if global_asi_available or global_llm_available:
+                self.logger.info("Found globally initialized components")
+        except ImportError:
+            global_asi_available = False
+            global_llm_available = False
+        
+        # Force ASI components to be available if global instance exists
+        if global_asi_available:
+            self.logger.info("Using globally initialized ASI components")
+            # Make a special environment flag to signal real components should be used
+            os.environ['USE_REAL_ASI'] = 'true'
+        
         # Initialize component interfaces
         self.asi = ASIInterface()
         self.mock_llm = MOCKLLMInterface()
         self.memory = UnifiedMemory()
         
-        # Store availability flags
-        self.has_asi = self.asi.is_available
-        self.has_mock_llm = self.mock_llm.is_available
+        # Store availability flags - override if global components exist
+        self.has_asi = global_asi_available or self.asi.is_available
+        self.has_mock_llm = global_llm_available or self.mock_llm.is_available
         
         self.logger.info(f"ASI available: {self.has_asi}")
         self.logger.info(f"MOCK-LLM available: {self.has_mock_llm}")
