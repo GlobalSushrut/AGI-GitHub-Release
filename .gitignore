@@ -1,44 +1,32 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
+# Ignore all files by default
+*
+
+# Allow markdown documentation
+!*.md
+
+# Allow the license file
+!LICENSE.md
+
+# Allow specific documentation directories
+!docs/
+!docs/**/*.md
+!whitepaper/
+!whitepaper/*.md
+
+# Explicitly block any code files that might be in allowed directories
+**/*.cpp
+**/*.hpp
+**/*.h
+**/*.c
+**/*.o
+**/*.a
+**/*.so
+**/*.dylib
+**/*.exe
+**/*.out
+**/*.app
+
+# Build outputs
 build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
+bin/
 lib/
-lib64/
-parts/
-sdist/
-var/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Virtual Environment
-venv/
-ENV/
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Project specific
-reports/
-*.log
